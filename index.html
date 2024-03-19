@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Brian TTS Reader</title>
+
+    <style>
+        body {
+            background-color: #282828;
+            color: #f8f8f2;
+        }
+
+        textarea {
+            padding: 12px 20px;
+            margin: 8px 0;
+            display: inline-block;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            background-color: #282828;
+            color: #f8f8f2;
+        }
+
+        button {
+            background-color: #4caf50;
+            color: white;
+            padding: 14px 20px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        div {
+            border-radius: 5px;
+            background-color: #f2f2f2;
+            padding: 20px;
+        }
+
+        #downloadButton {
+            background-color: #4caf50;
+            color: white;
+            padding: 14px 20px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #downloadButton:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div id="view">
+        <h3>Brian TTS Reader</h3>
+        <textarea id="text" rows="15" cols="80" maxlength="1000" placeholder="Enter text here..."></textarea>
+        <br />
+        <audio id="audio" controls="">
+            <source id="source" type="audio/wav" />
+        </audio>
+        <br />
+        <button type="submit" id="button">PLAY</button>
+        <button id="downloadButton" onclick="downloadAudio()">DOWNLOAD MP3</button>
+        <br />
+        Number of Characters: <span id="message">0</span>
+        <br />
+        <br />
+        <hr />
+        <br />
+        <a href="https://github.com/chameleonhash/TTS-Brian" target="_blank">(Source Code)</a>
+
+        <script>
+            async function submit() {
+                let text = document.getElementById('text').value;
+
+                if (text === '') {
+                    alert('You must enter some text...');
+                    return;
+                }
+
+                let speak = await fetch('https://api.streamelements.com/kappa/v2/speech?voice=Brian&text=' + encodeURIComponent(text.trim()));
+
+                if (speak.status != 200) {
+                    alert(await speak.text());
+                    return;
+                }
+
+                let mp3 = await speak.blob();
+
+                let blobUrl = URL.createObjectURL(mp3);
+                document.getElementById('source').setAttribute('src', blobUrl);
+                let audio = document.getElementById('audio');
+                audio.pause();
+                audio.load();
+                audio.play();
+            }
+
+            function downloadAudio() {
+                let audio = document.getElementById('audio');
+                let source = document.getElementById('source');
+                let url = source.getAttribute('src');
+                let link = document.createElement('a');
+                link.href = url;
+                link.download = 'audio.mp3';
+                link.click();
+            }
+
+            document.getElementById('text').oninput = function () {
+                document.getElementById('message').innerHTML = document.getElementById('text').value.length;
+            };
+
+            document.getElementById('text').onkeydown = function (e) {
+                if ((event.keyCode == 10 || event.keyCode == 13) && event.ctrlKey) {
+                    submit()
+                }
+            };
+
+            document.getElementById('button').onclick = submit;
+        </script>
+    </div>
+</body>
+</html>
